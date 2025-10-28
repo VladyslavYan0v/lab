@@ -114,6 +114,34 @@ class TestBaseSimulator(unittest.TestCase):
         self.assertTrue(report["OXYGEN"])
         self.assertEqual(self.simulator.resources["WATER"], 0)
         self.assertTrue(report["WATER"])
+
+    def test_produce(self):
+        #Test 9: Farms produce (got WATER and ENERGY).
+        report = {"WATER": True, "ENERGY": True, "FOOD": True, "OXYGEN": True}
+        self.simulator._produce(report)
         
+        self.assertEqual(self.simulator.resources["FOOD"], 105)
+        self.assertEqual(self.simulator.resources["OXYGEN"], 102)
+        self.assertEqual(self.simulator.resources["ENERGY"], 110)
+
+    def test_produce_no_water_or_energy(self):
+        #Test 10: Farms do NOT produce (no WATER or ENERGY).
+        report = {"WATER": False, "ENERGY": False, "FOOD": True, "OXYGEN": True}
+        self.simulator._produce(report)
+        
+        self.assertEqual(self.simulator.resources["FOOD"], 100)
+        self.assertEqual(self.simulator.resources["OXYGEN"], 100)
+        self.assertEqual(self.simulator.resources["ENERGY"], 110)
+        
+    def test_produce_multiple_farms(self):
+        #Test 11: Production scales with farm count.
+        simulator = BaseSimulator(self.initial_resources.copy(), residents=0, farms=3)
+        report = {"WATER": True, "ENERGY": True, "FOOD": True, "OXYGEN": True}
+        simulator._produce(report)
+        
+        self.assertEqual(simulator.resources["FOOD"], 115)
+        self.assertEqual(simulator.resources["OXYGEN"], 106)
+        self.assertEqual(simulator.resources["ENERGY"], 110)
+
 if __name__ == "__main__":
     unittest.main()
