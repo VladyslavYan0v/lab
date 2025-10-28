@@ -143,5 +143,73 @@ class TestBaseSimulator(unittest.TestCase):
         self.assertEqual(simulator.resources["OXYGEN"], 106)
         self.assertEqual(simulator.resources["ENERGY"], 110)
 
+    def test_simulate_one_day_main_scenario(self):
+        #Test 12: Integration test for a single day (main scenario).
+        self.simulator.simulate()
+       
+        expected_resources = {
+            "WATER": 91,
+            "OXYGEN": 99,
+            "FOOD": 102,
+            "ENERGY": 109
+        }
+        self.assertEqual(self.simulator.resources, expected_resources)
+
+    def test_simulate_one_day_farm_failure(self):
+        #Test 13: Integration test where farms fail to consume.
+        self.simulator.resources["WATER"] = 0 
+        self.simulator.simulate()
+      
+        expected_resources = {
+            "WATER": 0,
+            "OXYGEN": 97,
+            "FOOD": 97,
+            "ENERGY": 109
+        }
+        self.assertEqual(self.simulator.resources, expected_resources)
+
+    def test_run_simulation_zero_days(self):
+        #Test 14: Running for 0 days changes nothing.
+        self.simulator.run_simulation(0)
+        self.assertEqual(self.simulator.resources, self.initial_resources)
+
+    def test_simulation(self):
+        #Test 15: The standart version of solution checked.
+        final_resources = self.simulator.run_simulation(5)
+        expected_resources = {
+            "WATER": 55,
+            "OXYGEN": 95,
+            "FOOD": 110,
+            "ENERGY": 145 
+        }
+        self.assertEqual(final_resources, expected_resources)
+        
+    def test_water_depletes(self):
+        #Test 16: Test resource depletion and its effect on production.
+        self.simulator.resources["WATER"] = 20
+        final_resources = self.simulator.run_simulation(3)
+
+        expected_resources = {
+            "WATER": 2,
+            "OXYGEN": 95,
+            "FOOD": 101,
+            "ENERGY": 127
+        }
+        self.assertEqual(final_resources, expected_resources)
+
+    def test_wrong_type(self):
+        #Test 17: Test for TypeError if a resource is not an integer.
+        wrong_type_resources = {
+            "WATER": 100,
+            "OXYGEN": "100", 
+            "FOOD": 100,
+            "ENERGY": 100
+        }
+        
+        simulator = BaseSimulator(wrong_type_resources, residents=1, farms=0)
+        
+        with self.assertRaises(TypeError):
+            simulator.simulate() 
+
 if __name__ == "__main__":
     unittest.main()
