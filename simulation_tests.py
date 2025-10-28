@@ -55,5 +55,65 @@ class TestBaseSimulator(unittest.TestCase):
         expected_demand = {"OXYGEN": 0, "WATER": 0, "FOOD": 0, "ENERGY": 0}
         self.assertEqual(simulator._calculate(), expected_demand)
 
+
+    def test_consume(self):
+        #Test 5: All resources are sufficient.
+        demand = {"OXYGEN": 10, "WATER": 10, "FOOD": 10, "ENERGY": 10}
+        report = self.simulator._consume(demand)
+        
+        self.assertEqual(self.simulator.resources["OXYGEN"], 90)
+        self.assertEqual(self.simulator.resources["WATER"], 90)
+        self.assertEqual(self.simulator.resources["FOOD"], 90)
+        self.assertEqual(self.simulator.resources["ENERGY"], 90)
+        
+        self.assertTrue(report["OXYGEN"])
+        self.assertTrue(report["WATER"])
+        self.assertTrue(report["FOOD"])
+        self.assertTrue(report["ENERGY"])
+
+    def test_consume_multiple(self):
+        #Test 6: Both WATER and FOOD are insufficient, but others pass.
+        self.simulator.resources["WATER"] = 0
+        self.simulator.resources["FOOD"] = 0
+        demand = {"OXYGEN": 10, "WATER": 10, "FOOD": 10, "ENERGY": 10}
+        report = self.simulator._consume(demand)
+        
+        self.assertEqual(self.simulator.resources["WATER"], 0)
+        self.assertFalse(report["WATER"])
+        self.assertEqual(self.simulator.resources["FOOD"], 0)
+        self.assertFalse(report["FOOD"])
+        
+        self.assertEqual(self.simulator.resources["OXYGEN"], 90)
+        self.assertTrue(report["OXYGEN"])
+        self.assertEqual(self.simulator.resources["ENERGY"], 90)
+        self.assertTrue(report["ENERGY"])
+
+    def test_consume_insufficient(self):
+        #Test 7: Test mixed success/failure at the boundary.
+        low_resources = {"WATER": 1, "OXYGEN": 1, "FOOD": 1, "ENERGY": 1}
+        simulator = BaseSimulator(low_resources, residents=1, farms=1)
+        demand = simulator._calculate()
+        
+        report = simulator._consume(demand)
+        
+        self.assertFalse(report["WATER"])
+        self.assertEqual(simulator.resources["WATER"], 1)
+        
+        self.assertTrue(report["OXYGEN"])
+        self.assertTrue(report["FOOD"])
+        self.assertTrue(report["ENERGY"])
+        self.assertEqual(simulator.resources["OXYGEN"], 0)
+        self.assertEqual(simulator.resources["FOOD"], 0)
+
+    def test_consume_exact_amount(self):
+        #Test 8: Stockpile has the exact amount needed.
+        demand = {"OXYGEN": 100, "WATER": 100, "FOOD": 100, "ENERGY": 100}
+        report = self.simulator._consume(demand)
+        
+        self.assertEqual(self.simulator.resources["OXYGEN"], 0)
+        self.assertTrue(report["OXYGEN"])
+        self.assertEqual(self.simulator.resources["WATER"], 0)
+        self.assertTrue(report["WATER"])
+        
 if __name__ == "__main__":
     unittest.main()
