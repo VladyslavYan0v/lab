@@ -6,7 +6,7 @@ class BaseSimulator:
         self.farms = farms
 
     # calculation of resources used in one day
-    def _calculate(self) -> dict:
+    def calculate(self) -> dict:
         consumption = {
             "OXYGEN": self.residents * 1,
             "WATER": (self.residents * 2) + (self.farms * 3),
@@ -16,7 +16,7 @@ class BaseSimulator:
         return consumption
 
     # applying changes in resources
-    def _consume(self, consumption: dict) -> dict:
+    def consume(self, consumption: dict) -> dict:
         report = {"WATER": False, "ENERGY": False, "FOOD": False, "OXYGEN": False}
 
         can_consume_oxygen = self.resources["OXYGEN"] >= consumption["OXYGEN"]
@@ -43,7 +43,7 @@ class BaseSimulator:
         return report
 
     # calculation of resources produced in one day
-    def _produce(self, consumption_report: dict) -> None:
+    def produce(self, consumption_report: dict) -> None:
         if consumption_report["WATER"] and consumption_report["ENERGY"]:
             self.resources["FOOD"] += self.farms * 5
             self.resources["OXYGEN"] += self.farms * 2
@@ -52,11 +52,11 @@ class BaseSimulator:
 
     # simulation of one day
     def simulate(self) -> None:
-        consumption = self._calculate()
+        consumption = self.calculate()
         
-        report = self._consume(consumption)
+        report = self.consume(consumption)
         
-        self._produce(report)
+        self.produce(report)
 
     # simulation of the period of days
     def run_simulation(self, days: int) -> dict:
