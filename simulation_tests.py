@@ -18,8 +18,14 @@ farm_food_production = 5
 farm_oxygen_production = 2
 base_energy_production = 10
 
+##
+# @brief Unit tests for the BaseSimulator class.
+#
+# Contains test cases for calculation, consumption, production, and full simulation cycles.
 class TestBaseSimulator(unittest.TestCase):
 
+    ##
+    # @brief Setup method to initialize resources before each test.
     def setUp(self):
 
         self.initial_resources = {
@@ -38,8 +44,9 @@ class TestBaseSimulator(unittest.TestCase):
             farms=self.farms
         )
 
+    ##
+    # @brief Test basic resource demand calculation.
     def test_basic_calculations(self):
-        #Test 1: Check expected calculations.
         r, f = self.residents, self.farms
 
         expected_demand = {
@@ -51,8 +58,9 @@ class TestBaseSimulator(unittest.TestCase):
 
         self.assertEqual(self.simulator.calculate(), expected_demand)
 
+    ##
+    # @brief Test calculation with no farms.
     def test_calculate_no_farms(self):
-        #Test 2: Check demand with residents but zero farms.
         r, f = 5, 0
         simulator = BaseSimulator(self.initial_resources.copy(), residents=r, farms=f)
         expected_demand = {
@@ -63,8 +71,9 @@ class TestBaseSimulator(unittest.TestCase):
         }
         self.assertEqual(simulator.calculate(), expected_demand)
 
+    ##
+    # @brief Test calculation with no residents.
     def test_calculate_no_residents(self):
-        #Test 3: Check demand with farms but zero residents.
         r, f = 0, 2
         simulator = BaseSimulator(self.initial_resources.copy(), residents=r, farms=f)
         expected_demand = {
@@ -75,15 +84,16 @@ class TestBaseSimulator(unittest.TestCase):
         }
         self.assertEqual(simulator.calculate(), expected_demand)
 
+    ##
+    # @brief Test calculation with zero entities.
     def test_calculate_all_zero(self):
-        #Test 4: Check demand with zero residents and zero farms.
         simulator = BaseSimulator(self.initial_resources.copy(), residents=0, farms=0)
         expected_demand = {res_oxygen: 0, res_water: 0, res_food: 0, res_energy: 0}
         self.assertEqual(simulator.calculate(), expected_demand)
 
-
+    ##
+    # @brief Test successful consumption of resources.
     def test_consume(self):
-        #Test 5: All resources are sufficient.
         demand_amount = 10
         demand = {
             res_oxygen: demand_amount, 
@@ -107,8 +117,9 @@ class TestBaseSimulator(unittest.TestCase):
         self.assertTrue(report[res_food])
         self.assertTrue(report[res_energy])
 
+    ##
+    # @brief Test partial consumption failure.
     def test_consume_multiple(self):
-        #Test 6: Both WATER and FOOD are insufficient, but others pass.
         demand_amount = 10
         self.simulator.resources[res_water] = 0
         self.simulator.resources[res_food] = 0
@@ -133,8 +144,9 @@ class TestBaseSimulator(unittest.TestCase):
         self.assertTrue(report[res_oxygen])
         self.assertTrue(report[res_energy])
 
+    ##
+    # @brief Test consumption with insufficient resources.
     def test_consume_insufficient(self):
-        #Test 7: Test mixed success/failure at the boundary.
         initial_low_val = 1
         low_resources = {
             res_water: initial_low_val, 
@@ -158,8 +170,9 @@ class TestBaseSimulator(unittest.TestCase):
         self.assertEqual(simulator.resources[res_oxygen], initial_low_val - demand[res_oxygen])
         self.assertEqual(simulator.resources[res_food], initial_low_val - demand[res_food])
 
+    ##
+    # @brief Test consumption with exact amount of resources.
     def test_consume_exact_amount(self):
-        #Test 8: Stockpile has the exact amount needed.
         initial_res = self.initial_resources.copy()
         demand = initial_res
         report = self.simulator.consume(demand)
@@ -170,8 +183,9 @@ class TestBaseSimulator(unittest.TestCase):
         self.assertEqual(self.simulator.resources[res_water], initial_res[res_water] - demand[res_water])
         self.assertTrue(report[res_water])
 
+    ##
+    # @brief Test production when resources are sufficient.
     def test_produce(self):
-        #Test 9: Farms produce (got WATER and ENERGY).
         report = {res_water: True, res_energy: True, res_food: True, res_oxygen: True}
         initial_res = self.initial_resources.copy()
         self.simulator.produce(report)
@@ -185,8 +199,9 @@ class TestBaseSimulator(unittest.TestCase):
         self.assertEqual(self.simulator.resources[res_oxygen], expected_oxygen)
         self.assertEqual(self.simulator.resources[res_energy], expected_energy)
 
+    ##
+    # @brief Test production failure due to missing Water or Energy.
     def test_produce_no_water_or_energy(self):
-        #Test 10: Farms do NOT produce (no WATER or ENERGY).
         report = {res_water: False, res_energy: False, res_food: True, res_oxygen: True}
         initial_res = self.initial_resources.copy()
         self.simulator.produce(report)
@@ -196,9 +211,10 @@ class TestBaseSimulator(unittest.TestCase):
         self.assertEqual(self.simulator.resources[res_oxygen], initial_res[res_oxygen])
         #Base energy production always happens
         self.assertEqual(self.simulator.resources[res_energy], initial_res[res_energy] + base_energy_production)
-        
+
+    ##
+    # @brief Test production scaling with multiple farms    
     def test_produce_multiple_farms(self):
-        #Test 11: Production scales with farm count.
         r, f = 0, 3
         initial_res = self.initial_resources.copy()
         simulator = BaseSimulator(self.initial_resources.copy(), residents=r, farms=f)
@@ -210,8 +226,9 @@ class TestBaseSimulator(unittest.TestCase):
         self.assertEqual(simulator.resources[res_oxygen], initial_res[res_oxygen] + (f * farm_oxygen_production))
         self.assertEqual(simulator.resources[res_energy], initial_res[res_energy] + base_energy_production)
 
+    ##
+    # @brief Integration test for a single simulation day.
     def test_simulate_one_day_main_scenario(self):
-        #Test 12: Integration test for a single day (main scenario).
         r, f = self.residents, self.farms
         initial_res = self.initial_resources.copy()
         self.simulator.simulate()
@@ -225,8 +242,9 @@ class TestBaseSimulator(unittest.TestCase):
 
         self.assertEqual(self.simulator.resources, expected_resources)
 
+    ##
+    # @brief Integration test where farm production fails.
     def test_simulate_one_day_farm_failure(self):
-        #Test 13: Integration test where farms fail to consume.
         #Set 0 water, so farm production will fail
         r, f = self.residents, self.farms
         self.simulator.resources[res_water] = 0 
@@ -242,13 +260,15 @@ class TestBaseSimulator(unittest.TestCase):
         }
         self.assertEqual(self.simulator.resources, expected_resources)
 
+    ##
+    # @brief Test simulation with zero days.
     def test_run_simulation_zero_days(self):
-        #Test 14: Running for 0 days changes nothing.
         self.simulator.run_simulation(0)
         self.assertEqual(self.simulator.resources, self.initial_resources)
 
+    ##
+    # @brief Test simulation over multiple days.
     def test_simulation(self):
-        #Test 15: The standart version of solution checked.
         r, f = self.residents, self.farms
         days = 5
         initial_res = self.initial_resources.copy()
@@ -266,9 +286,10 @@ class TestBaseSimulator(unittest.TestCase):
             res_energy:  initial_res[res_energy] + (delta_energy * days)
         }
         self.assertEqual(final_resources, expected_resources)
-        
+
+    ##
+    # @brief Test resource depletion over time.    
     def test_water_depletes(self):
-        #Test 16: Test resource depletion and its effect on production.
         self.simulator.resources[res_water] = 20
         final_resources = self.simulator.run_simulation(3)
 
@@ -280,8 +301,9 @@ class TestBaseSimulator(unittest.TestCase):
         }
         self.assertEqual(final_resources, expected_resources)
 
+    ##
+    # @brief Test type error handling.
     def test_wrong_type(self):
-            #Test 17: Test for TypeError with various invalid resource types.
             
             invalid_values = [
                 "100",      # string
