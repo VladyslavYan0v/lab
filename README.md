@@ -48,3 +48,5 @@ If this condition is met, each farm produces:
     5 FOOD
 
     2 OXYGEN
+
+[View Documentation](https://vladyslavyan0v.github.io/lab/)
